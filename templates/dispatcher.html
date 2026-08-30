@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Reflex — Dispatcher</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+  <nav class="nav">
+    <a href="/" class="nav-brand"><span class="dot"></span> REFLEX</a>
+    <span class="nav-persona">🧑‍💼 Dispatcher</span>
+  </nav>
+
+  <div class="page">
+    <div class="page-header">
+      <h1>Open deliveries</h1>
+      <p>Assign each pending delivery to a rider. Once assigned, it moves off this list.</p>
+    </div>
+
+    <div id="form-alert" class="alert"></div>
+
+    <div class="card">
+      <h2>Waiting for assignment</h2>
+      <div id="open-list"></div>
+    </div>
+
+    <div class="card">
+      <h2>Already assigned</h2>
+      <div id="assigned-list"></div>
+    </div>
+  </div>
+
+  <div id="toast" class="toast"></div>
+
+  <script>
+    const alertBox = document.getElementById('form-alert');
+    const openListEl = document.getElementById('open-list');
+    const assignedListEl = document.getElementById('assigned-list');
+    const toast = document.getElementById('toast');
+
+    let riders = [];
+
+    function showToast(message) {
+      toast.textContent = message;
+      toast.classList.add('show');
+      setTimeout(() => toast.classList.remove('show'), 2500);
+    }
+
+    function showError(message) {
+      alertBox.textContent = message;
+      alertBox.classList.add('show');
+      setTimeout(() => alertBox.classList.remove('show'), 4000);
+    }
+
+    function statusLabel(status) {
+      return status.replace('_', ' ');
+    }
+
+    async function loadRiders() {
+      const res = await fetch('/riders');
+      riders = await res.json();
+    }
+
+    function riderOptions() {
+      return riders.map(r => `<option value="${r.id}">${r.name}</option>`).join('');
+    }
+
+    function riderName(riderId) {
+      const rider = riders.find(r => r.id === riderId);
+      return rider ? rider.name : 'Unknown';
+    }
+
+    async function assignRider(deliveryId, selectEl) {
+      const riderId = parseInt(selectEl.value, 10);
+      if (!riderId) return;
+
+      const res = await fetch(`/deliveries/${deliveryId}/assign`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ riderId }),
+      });
+
+      if (!res.ok) {
+        const err = await res.json();
+        showError(err.error || 'Could not assign rider.');
+        return;
+      }
+
+      showToast(`Delivery #D${String(deliveryId).padStart(3, '0')} assigned`);
+      loadDeliveries();
+    }
+
+    async function loadDeliveries() {
+      const res = await fetch('/deliveries');
+      const deliveries = await res.json();
+
+      const open = deliveries.filter(d => d.status === 'PENDING');
+      const assigned = deliveries.filter(d => d.status !== 'PENDING');
+
+      openListEl.innerHTML = open.length === 0
+        ? '<div class="empty-state">Nothing waiting — every delivery has a rider.</div>'
+        : open.map(d => `
+          <div class="delivery-item">
+            <div class="info">
+              <strong>#D${String(d.id).padStart(3, '0')} — ${d.customerName}</strong>
+              <span>${d.address} · ${d.itemDescription}</span>
+            </div>
+            <div class="delivery-actions">
+              <select id="rider-select-${d.id}">
+                <option value="">Choose rider…</option>
+                ${riderOptions()}
+              </select>
+              <button class="btn btn-secondary" onclick="assignRider(${d.id}, document.getElementById('rider-select-${d.id}'))">Assign</button>
+            </div>
+          </div>
+        `).join('');
+
+      assignedListEl.innerHTML = assigned.length === 0
+        ? '<div class="empty-state">No deliveries assigned yet.</div>'
+        : assigned.map(d => `
+          <div class="delivery-item">
+            <div class="info">
+              <strong>#D${String(d.id).padStart(3, '0')} — ${d.customerName}</strong>
+              <span>${d.address} · Rider: ${riderName(d.riderId)}</span>
+            </div>
+            <span class="badge badge-${d.status}">${statusLabel(d.status)}</span>
+          </div>
+        `).join('');
+    }
+
+    async function init() {
+      await loadRiders();
+      await loadDeliveries();
+      setInterval(loadDeliveries, 3000);
+    }
+
+    init();
+  </script>
+</body>
+</html>

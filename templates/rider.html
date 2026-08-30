@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Reflex — Rider</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+  <nav class="nav">
+    <a href="/" class="nav-brand"><span class="dot"></span> REFLEX</a>
+    <span class="nav-persona">🛵 Rider</span>
+  </nav>
+
+  <div class="page">
+    <div class="page-header">
+      <h1>My deliveries</h1>
+      <p>Pick which rider you are (demo only — no login), then move your deliveries forward one step at a time.</p>
+    </div>
+
+    <div class="card">
+      <label for="rider-picker">I am</label>
+      <select id="rider-picker"></select>
+    </div>
+
+    <div id="form-alert" class="alert"></div>
+
+    <div class="card">
+      <h2>Assigned to me</h2>
+      <div id="delivery-list"></div>
+    </div>
+  </div>
+
+  <div id="toast" class="toast"></div>
+
+  <script>
+    const riderPicker = document.getElementById('rider-picker');
+    const listEl = document.getElementById('delivery-list');
+    const alertBox = document.getElementById('form-alert');
+    const toast = document.getElementById('toast');
+
+    // What each current status is allowed to move to next, and the button label for it.
+    const NEXT_STEP = {
+      ASSIGNED: { next: 'PICKED_UP', label: 'Picked Up' },
+      PICKED_UP: { next: 'DELIVERED', label: 'Delivered' },
+    };
+
+    function showToast(message) {
+      toast.textContent = message;
+      toast.classList.add('show');
+      setTimeout(() => toast.classList.remove('show'), 2500);
+    }
+
+    function showError(message) {
+      alertBox.textContent = message;
+      alertBox.classList.add('show');
+      setTimeout(() => alertBox.classList.remove('show'), 4000);
+    }
+
+    function statusLabel(status) {
+      return status.replace('_', ' ');
+    }
+
+    async function loadRiders() {
+      const res = await fetch('/riders');
+      const riders = await res.json();
+      riderPicker.innerHTML = riders.map(r => `<option value="${r.id}">${r.name}</option>`).join('');
+    }
+
+    async function advanceStatus(deliveryId, newStatus) {
+      const res = await fetch(`/deliveries/${deliveryId}/status`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: newStatus }),
+      });
+
+      if (!res.ok) {
+        const err = await res.json();
+        showError(err.error || 'Could not update status.');
+        return;
+      }
+
+      showToast(`Delivery #D${String(deliveryId).padStart(3, '0')} marked ${statusLabel(newStatus)}`);
+      loadDeliveries();
+    }
+
+    async function loadDeliveries() {
+      const riderId = riderPicker.value;
+      if (!riderId) return;
+
+      const res = await fetch(`/deliveries?riderId=${riderId}`);
+      const all = await res.json();
+
+      // Only show deliveries still in flight for this rider — DELIVERED ones drop off after being seen once.
+      const active = all.filter(d => d.status === 'ASSIGNED' || d.status === 'PICKED_UP');
+
+      listEl.innerHTML = active.length === 0
+        ? '<div class="empty-state">Nothing assigned to you right now.</div>'
+        : active.map(d => {
+          const step = NEXT_STEP[d.status];
+          const buttonHtml = step
+            ? `<button class="btn btn-primary" onclick="advanceStatus(${d.id}, '${step.next}')">${step.label}</button>`
+            : '';
+          return `
+            <div class="delivery-item">
+              <div class="info">
+                <strong>#D${String(d.id).padStart(3, '0')} — ${d.customerName}</strong>
+                <span>${d.address} · ${d.itemDescription}</span>
+              </div>
+              <div class="delivery-actions">
+                <span class="badge badge-${d.status}">${statusLabel(d.status)}</span>
+                ${buttonHtml}
+              </div>
+            </div>
+          `;
+        }).join('');
+    }
+
+    async function init() {
+      await loadRiders();
+      await loadDeliveries();
+      riderPicker.addEventListener('change', loadDeliveries);
+      setInterval(loadDeliveries, 3000);
+    }
+
+    init();
+  </script>
+</body>
+</html>

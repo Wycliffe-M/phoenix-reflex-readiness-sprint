@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Reflex — Retailer</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+  <nav class="nav">
+    <a href="/" class="nav-brand"><span class="dot"></span> REFLEX</a>
+    <span class="nav-persona">🏪 Retailer</span>
+  </nav>
+
+  <div class="page">
+    <div class="page-header">
+      <h1>Your deliveries</h1>
+      <p>Log a new delivery, then watch its status update as the dispatcher and rider take it forward.</p>
+    </div>
+
+    <div class="card">
+      <h2>Create a delivery</h2>
+      <div id="form-alert" class="alert"></div>
+      <form id="delivery-form">
+        <label for="customerName">Customer name</label>
+        <input type="text" id="customerName" required>
+
+        <label for="phone">Customer phone</label>
+        <input type="tel" id="phone" required>
+
+        <label for="address">Delivery address</label>
+        <input type="text" id="address" required>
+
+        <label for="itemDescription">Item description</label>
+        <textarea id="itemDescription" required></textarea>
+
+        <button type="submit" class="btn btn-primary btn-block">Create Delivery</button>
+      </form>
+    </div>
+
+    <div class="card">
+      <h2>Delivery status</h2>
+      <div id="delivery-list"></div>
+    </div>
+  </div>
+
+  <div id="toast" class="toast"></div>
+
+  <script>
+    const form = document.getElementById('delivery-form');
+    const alertBox = document.getElementById('form-alert');
+    const listEl = document.getElementById('delivery-list');
+    const toast = document.getElementById('toast');
+
+    function showToast(message) {
+      toast.textContent = message;
+      toast.classList.add('show');
+      setTimeout(() => toast.classList.remove('show'), 2500);
+    }
+
+    function showError(message) {
+      alertBox.textContent = message;
+      alertBox.classList.add('show');
+    }
+
+    function clearError() {
+      alertBox.classList.remove('show');
+      alertBox.textContent = '';
+    }
+
+    function statusLabel(status) {
+      return status.replace('_', ' ');
+    }
+
+    async function loadDeliveries() {
+      const res = await fetch('/deliveries');
+      const deliveries = await res.json();
+
+      if (deliveries.length === 0) {
+        listEl.innerHTML = '<div class="empty-state">No deliveries yet — create one above.</div>';
+        return;
+      }
+
+      listEl.innerHTML = deliveries.map(d => `
+        <div class="delivery-item">
+          <div class="info">
+            <strong>#D${String(d.id).padStart(3, '0')} — ${d.customerName}</strong>
+            <span>${d.address} · ${d.itemDescription}</span>
+          </div>
+          <span class="badge badge-${d.status}">${statusLabel(d.status)}</span>
+        </div>
+      `).join('');
+    }
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      clearError();
+
+      const payload = {
+        customerName: document.getElementById('customerName').value.trim(),
+        phone: document.getElementById('phone').value.trim(),
+        address: document.getElementById('address').value.trim(),
+        itemDescription: document.getElementById('itemDescription').value.trim(),
+      };
+
+      const res = await fetch('/deliveries', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+
+      if (!res.ok) {
+        const err = await res.json();
+        showError(err.error || 'Something went wrong.');
+        return;
+      }
+
+      const created = await res.json();
+      showToast(`Delivery #D${String(created.id).padStart(3, '0')} created`);
+      form.reset();
+      loadDeliveries();
+    });
+
+    // Poll so the retailer sees status change without refreshing the page.
+    loadDeliveries();
+    setInterval(loadDeliveries, 3000);
+  </script>
+</body>
+</html>

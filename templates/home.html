@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Reflex</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+  <nav class="nav">
+    <a href="/" class="nav-brand"><span class="dot"></span> REFLEX</a>
+  </nav>
+
+  <div class="page">
+    <div class="page-header">
+      <h1>Delivery visibility, without the WhatsApp thread</h1>
+      <p>Pick a view to see Reflex from that person's side. Open two in separate tabs to watch a delivery move between them live.</p>
+    </div>
+
+    <div class="persona-grid">
+      <a href="/retailer" class="persona-card">
+        <span class="emoji">🏪</span>
+        <h3>Retailer</h3>
+        <p>Log a new delivery request and track it through to Delivered.</p>
+      </a>
+      <a href="/dispatcher" class="persona-card">
+        <span class="emoji">🧑‍💼</span>
+        <h3>Dispatcher</h3>
+        <p>See open requests and assign each one to a rider.</p>
+      </a>
+      <a href="/rider" class="persona-card">
+        <span class="emoji">🛵</span>
+        <h3>Rider</h3>
+        <p>See assigned deliveries and move them through pickup to delivery.</p>
+      </a>
+    </div>
+  </div>
+</body>
+</html>
