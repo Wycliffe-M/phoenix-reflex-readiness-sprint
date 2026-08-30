@@ -9,7 +9,7 @@ This maps 1:1 to the brief's own "Deliverables Checklist." Don't submit until ev
 - [ ] `main` branch on GitHub reflects the final, working app — no uncommitted work sitting on anyone's laptop
 - [ ] Repo is accessible to whoever's grading it (confirm: public repo, or instructor added as collaborator — check which your program requires)
 - [ ] App runs cleanly from a fresh clone (`git clone` → `pip install -r requirements.txt` → `python app.py`) — test this on a machine/venv that hasn't already got it running, to catch anything that only works because of leftover local state
-- [ ] No feature changes after the freeze point agreed on Day 2 — if something changed today, confirm it was a fix, not new scope
+- [ ] No feature changes since the freeze point at the end of Day 1 — if something changed since then, confirm it was a bug fix responding to something broken, not new scope
 - [ ] `README.md` is current and matches the actual final contract/behavior
 
 **Owner confirming:** Member 4, with Members 1–3 confirming their own screens still match
