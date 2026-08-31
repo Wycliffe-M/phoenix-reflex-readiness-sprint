@@ -56,5 +56,16 @@ This document records deliberate compromises made during the sprint. Each entry 
 
 ---
 
+## ⚡ Concurrency in Assignment
+- **Decision**: `assign_delivery` uses a simple check‑then‑act pattern without transaction isolation.
+- **Trade-Off**: Two near-simultaneous `POST /assign` calls can both read `status == PENDING` before either writes, creating a race condition and possible double assignment.
+- **Rationale**: Simplicity for MVP sprint; avoided complexity of database transactions or row-level locks.
+- **Future Fix**: Add transaction isolation or optimistic locking. Options include:
+  - Use `SELECT ... FOR UPDATE` in PostgreSQL/MySQL.
+  - Add a unique constraint on `(deliveryId, status)` to prevent double assignment.
+  - Implement optimistic concurrency control (check version/timestamp before update).
+
+---
+
 ## ✅ Summary
 These trade-offs allowed the team to deliver a working MVP quickly. Each gap is acknowledged and mapped to a concrete future fix for production readiness.
