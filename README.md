@@ -53,3 +53,8 @@ Rider:
 | `templates/dispatcher.html` | Member 2 |
 | `templates/rider.html` | Member 3 |
 | `templates/home.html`, `static/style.css` | shared |
+| `docs/Reflex_Deck_Outline.md` | Member 5 |
+| `docs/Reflex_Demo_Script_and_SCE_Prep.md` | Member 5 |
+| `docs/Reflex_TradeOff_Log.md` | Member 5 (individual entries credited to whoever raised them) |
+| `docs/Reflex_Submission_Checklist.md` | Member 5 |
+

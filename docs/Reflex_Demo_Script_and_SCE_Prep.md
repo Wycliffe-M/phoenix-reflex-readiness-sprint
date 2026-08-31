@@ -75,7 +75,8 @@ For each question: **State** your answer in one plain sentence. **Context**: the
 |---|---|---|
 | Why no real authentication? | Member 1 | State: [...] Context: [...] Evidence: [...] |
 | Why no GPS/live location tracking? | Member 3 | State: [...] Context: [...] Evidence: [...] |
-| Why polling instead of WebSockets/real-time sync? | Member 4 | State: [...] Context: [...] Evidence: [...] |
+| Why no QR/barcode scanning for order confirmation, given the case study mentions it? | Lastborn | State: [...] Context: [...] Evidence: [...] |
+| Why polling instead of WebSockets/real-time sync, and how do you handle a rider going offline mid-update? | Member 4 | State: [...] Context: [...] Evidence: [...] |
 | Why no rider notification when assigned? | Member 2 | State: [...] Context: [...] Evidence: [...] |
 
 ### Category 3 — Edge cases ("what happens when two things happen at once, or something fails partway through?")

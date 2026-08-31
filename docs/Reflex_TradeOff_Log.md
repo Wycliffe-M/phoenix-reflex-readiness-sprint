@@ -1,7 +1,7 @@
 # Reflex — Trade-Off Log
 **Required by the brief as its own one-page deliverable — at least 3 weak points, each with an "acceptable because…" justification. This must match what's said on the Trade-offs slide, word-for-word in substance if not in phrasing.**
 
-Fill in the bracketed sections once Day 1's build is final. The four candidates below are already identified from earlier planning — confirm each still holds after the real build, add any new ones the mock panel or dry runs surface, and don't submit fewer than three.
+Fill in the bracketed sections once Day 1's build is final. The five candidates below are already identified from earlier planning and team discussion — confirm each still holds after the real build, add any new ones the mock panel or dry runs surface, and don't submit fewer than three.
 
 ---
 
@@ -16,25 +16,25 @@ Fill in the bracketed sections once Day 1's build is final. The four candidates 
 
 ---
 
-### Trade-off 2 — No GPS / live location tracking, no proof of delivery
+### Trade-off 2 — No GPS / live location tracking
 **Owner:** Member 3
 
-**What it is:** [e.g. "A rider marks a delivery 'Delivered' with a single button tap — there's no photo, signature, or location check confirming it actually happened."]
+**What it is:** [e.g. "A rider's location isn't tracked during transit — the retailer and dispatcher can't see where the delivery physically is between Assigned and Delivered."]
 
-**Acceptable because:** [e.g. "The brief's core problem is status visibility, not navigation or fraud prevention. GPS integration is also explicitly called out in the brief as something we could consider but shouldn't let derail the core workflow."]
+**Acceptable because:** [e.g. "The brief's core problem is status visibility, not live navigation. GPS integration is also explicitly called out in the brief as something we could consider but shouldn't let derail the core workflow."]
 
-**What we'd do with more time:** [e.g. "Add GPS tracking during transit and require a photo or signature capture at the Delivered step as proof."]
+**What we'd do with more time:** [e.g. "Add GPS tracking during transit so the retailer can see the rider's live position, not just a status label."]
 
 ---
 
-### Trade-off 3 — Polling instead of real-time sync
+### Trade-off 3 — Polling instead of real-time sync, with no offline handling
 **Owner:** Member 4 (with Members 1, 2, 3)
 
-**What it is:** [e.g. "Every screen refreshes its data every 3 seconds via polling (fetch on an interval), rather than the server pushing updates the instant something changes."]
+**What it is:** [e.g. "Every screen refreshes its data every 3 seconds via polling (fetch on an interval), rather than the server pushing updates the instant something changes. There's also no queuing or retry if a rider's status update fails to reach the server due to no connection — it simply fails."]
 
-**Acceptable because:** [e.g. "Polling is far simpler to build and reason about than WebSockets, and a 3-second delay is invisible in a live demo while still meeting the 'always know where a delivery stands' requirement from the brief."]
+**Acceptable because:** [e.g. "Polling is far simpler to build and reason about than WebSockets, and a 3-second delay is invisible in a live demo while still meeting the 'always know where a delivery stands' requirement from the brief. Full offline support (local caching, retry logic) is production-hardening, not core to proving the request → assignment → status flow this week."]
 
-**What we'd do with more time:** [e.g. "Move to WebSockets or Server-Sent Events so status changes appear instantly rather than within a few seconds."]
+**What we'd do with more time:** [e.g. "Move to WebSockets or Server-Sent Events for instant updates instead of a 3-second delay, and add local caching + auto-retry on the rider's screen so a status update isn't lost if their connection drops."]
 
 ---
 
@@ -49,14 +49,14 @@ Fill in the bracketed sections once Day 1's build is final. The four candidates 
 
 ---
 
-### [Trade-off 5 — add if the mock panel or dry runs surface a new one]
-**Owner:**
+### Trade-off 5 — No QR/barcode scanning for order confirmation
+**Owner:** [assign — Lastborn, since he raised it]
 
-**What it is:**
+**What it is:** [e.g. "A rider confirms delivery with a single button tap ('Delivered'), rather than scanning a QR/barcode tied to that specific order. The case study explicitly mentions 'scanning for order confirmation' as a capability the system supports."]
 
-**Acceptable because:**
+**Acceptable because:** [e.g. "Real scanning needs camera access, a QR/barcode library, and generating a unique code per delivery — meaningful build time for something that doesn't change the core architecture being tested (request → assignment → status flow). We prioritized proving that flow works end-to-end over adding a verification mechanism on top of it."]
 
-**What we'd do with more time:**
+**What we'd do with more time:** [e.g. "Generate a unique QR code per delivery at creation time; the rider scans it at drop-off, and the status only flips to Delivered if the scanned code matches — this would also solve 'right rider, right location' verification as a side benefit."]
 
 ---
 
