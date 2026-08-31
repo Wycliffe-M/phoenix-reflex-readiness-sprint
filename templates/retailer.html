@@ -18,6 +18,9 @@
       <p>Log a new delivery, then watch its status update as the dispatcher and rider take it forward.</p>
     </div>
 
+    <!-- TWEAK: offline/connection indicator banner -->
+    <div id="connection-banner" class="alert" style="display:none;"></div>
+
     <div class="card">
       <h2>Create a delivery</h2>
       <div id="form-alert" class="alert"></div>
@@ -26,13 +29,17 @@
         <input type="text" id="customerName" required>
 
         <label for="phone">Customer phone</label>
-        <input type="tel" id="phone" required>
+        <input type="tel" id="phone" required placeholder="e.g. 0712345678">
+        <!-- TWEAK: inline phone format hint -->
+        <small id="phone-hint" class="field-hint"></small>
 
         <label for="address">Delivery address</label>
         <input type="text" id="address" required>
 
         <label for="itemDescription">Item description</label>
-        <textarea id="itemDescription" required></textarea>
+        <textarea id="itemDescription" required maxlength="200"></textarea>
+        <!-- TWEAK: character counter -->
+        <small id="char-counter" class="field-hint">0/200 characters</small>
 
         <button type="submit" class="btn btn-primary btn-block">Create Delivery</button>
       </form>
@@ -51,6 +58,11 @@
     const alertBox = document.getElementById('form-alert');
     const listEl = document.getElementById('delivery-list');
     const toast = document.getElementById('toast');
+    const phoneInput = document.getElementById('phone');
+    const phoneHint = document.getElementById('phone-hint');
+    const itemDescription = document.getElementById('itemDescription');
+    const charCounter = document.getElementById('char-counter');
+    const connectionBanner = document.getElementById('connection-banner');
 
     function showToast(message) {
       toast.textContent = message;
@@ -72,53 +84,112 @@
       return status.replace('_', ' ');
     }
 
-    async function loadDeliveries() {
-      const res = await fetch('/deliveries');
-      const deliveries = await res.json();
+    // TWEAK: phone number validation
+    function isValidPhone(value) {
+      const digits = value.replace(/\D/g, '');
+      return digits.length >= 10;
+    }
 
-      if (deliveries.length === 0) {
-        listEl.innerHTML = '<div class="empty-state">No deliveries yet — create one above.</div>';
-        return;
+    phoneInput.addEventListener('input', () => {
+      if (phoneInput.value && !isValidPhone(phoneInput.value)) {
+        phoneHint.textContent = 'Enter at least 10 digits';
+        phoneHint.classList.add('hint-error');
+      } else {
+        phoneHint.textContent = '';
+        phoneHint.classList.remove('hint-error');
       }
+    });
 
-      listEl.innerHTML = deliveries.map(d => `
-        <div class="delivery-item">
-          <div class="info">
-            <strong>#D${String(d.id).padStart(3, '0')} — ${d.customerName}</strong>
-            <span>${d.address} · ${d.itemDescription}</span>
-          </div>
-          <span class="badge badge-${d.status}">${statusLabel(d.status)}</span>
-        </div>
-      `).join('');
+    // TWEAK: character counter on item description
+    itemDescription.addEventListener('input', () => {
+      const len = itemDescription.value.length;
+      charCounter.textContent = `${len}/200 characters`;
+    });
+
+    // TWEAK: offline/connection indicator
+    function showConnectionIssue() {
+      connectionBanner.textContent = 'Connection lost — retrying...';
+      connectionBanner.classList.add('show');
+      connectionBanner.style.display = 'block';
+    }
+
+    function clearConnectionIssue() {
+      connectionBanner.classList.remove('show');
+      connectionBanner.style.display = 'none';
+    }
+
+    async function loadDeliveries() {
+      try {
+        const res = await fetch('/deliveries');
+        const deliveries = await res.json();
+        clearConnectionIssue();
+
+        if (deliveries.length === 0) {
+          listEl.innerHTML = '<div class="empty-state">No deliveries yet — create one above.</div>';
+          return;
+        }
+
+        listEl.innerHTML = deliveries.map(d => {
+          // TWEAK: visible note on the scan gap, shown only once a delivery is Delivered
+          const scanNote = d.status === 'DELIVERED'
+            ? '<div class="scan-note">Confirmed manually — scan-based confirmation planned</div>'
+            : '';
+
+          return `
+            <div class="delivery-item">
+              <div class="info">
+                <strong>#D${String(d.id).padStart(3, '0')} — ${d.customerName}</strong>
+                <span>${d.address} · ${d.itemDescription}</span>
+                ${scanNote}
+              </div>
+              <span class="badge badge-${d.status}">${statusLabel(d.status)}</span>
+            </div>
+          `;
+        }).join('');
+      } catch (err) {
+        showConnectionIssue();
+      }
     }
 
     form.addEventListener('submit', async (e) => {
       e.preventDefault();
       clearError();
 
-      const payload = {
-        customerName: document.getElementById('customerName').value.trim(),
-        phone: document.getElementById('phone').value.trim(),
-        address: document.getElementById('address').value.trim(),
-        itemDescription: document.getElementById('itemDescription').value.trim(),
-      };
-
-      const res = await fetch('/deliveries', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
-      });
-
-      if (!res.ok) {
-        const err = await res.json();
-        showError(err.error || 'Something went wrong.');
+      // TWEAK: block submit on invalid phone before hitting the server
+      if (!isValidPhone(phoneInput.value)) {
+        showError('Please enter a valid phone number (at least 10 digits).');
         return;
       }
 
-      const created = await res.json();
-      showToast(`Delivery #D${String(created.id).padStart(3, '0')} created`);
-      form.reset();
-      loadDeliveries();
+      const payload = {
+        customerName: document.getElementById('customerName').value.trim(),
+        phone: phoneInput.value.trim(),
+        address: document.getElementById('address').value.trim(),
+        itemDescription: itemDescription.value.trim(),
+      };
+
+      try {
+        const res = await fetch('/deliveries', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        });
+
+        if (!res.ok) {
+          const err = await res.json();
+          showError(err.error || 'Something went wrong.');
+          return;
+        }
+
+        const created = await res.json();
+        showToast(`Delivery #D${String(created.id).padStart(3, '0')} created`);
+        form.reset();
+        charCounter.textContent = '0/200 characters';
+        phoneHint.textContent = '';
+        loadDeliveries();
+      } catch (err) {
+        showConnectionIssue();
+      }
     });
 
     // Poll so the retailer sees status change without refreshing the page.
@@ -127,3 +198,4 @@
   </script>
 </body>
 </html>
+
