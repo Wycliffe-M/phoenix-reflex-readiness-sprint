@@ -21,6 +21,16 @@ python app.py
 
 Then open `http://127.0.0.1:5000` in your browser. The database file (`reflex.db`) and its 3 seed riders (Brian, Kevin, James) are created automatically on first run.
 
+## Live deployment
+
+The app is deployed and publicly accessible at:
+
+**https://phoenix-reflex-readiness-sprint.onrender.com**
+
+Hosted on Render's free tier. Two things worth knowing:
+- **Data resets on redeploy or after ~15 minutes of inactivity** — free-tier storage is not persistent, so don't expect demo data logged today to still be there tomorrow.
+- **Cold start delay:** if the service has been idle, the first request can take 30–50 seconds to respond while it spins back up. Do a warm-up visit a couple of minutes before any live demo.
+
 ## Frozen data model
 
 ```
