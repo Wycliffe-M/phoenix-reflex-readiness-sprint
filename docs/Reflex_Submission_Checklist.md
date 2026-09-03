@@ -11,6 +11,7 @@ This maps 1:1 to the brief's own "Deliverables Checklist." Don't submit until ev
 - [ ] App runs cleanly from a fresh clone (`git clone` → `pip install -r requirements.txt` → `python app.py`) — test this on a machine/venv that hasn't already got it running, to catch anything that only works because of leftover local state
 - [ ] No feature changes since the freeze point at the end of Day 1 — if something changed since then, confirm it was a bug fix responding to something broken, not new scope
 - [ ] `README.md` is current and matches the actual final contract/behavior
+- [ ] Live deployment URL (`https://phoenix-reflex-readiness-sprint.onrender.com`) is reachable and has been tested end-to-end (create → assign → pick up → deliver) — confirm again shortly before the panel, since free-tier data resets on idle/redeploy
 
 **Owner confirming:** Member 4, with Members 1–3 confirming their own screens still match
 
