@@ -134,6 +134,7 @@ def update_status(delivery_id):
     return jsonify(updated)
 
 
+models.init_db()
+
 if __name__ == "__main__":
-    models.init_db()
     app.run(debug=True)
