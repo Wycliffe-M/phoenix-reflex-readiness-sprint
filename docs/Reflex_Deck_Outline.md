@@ -11,7 +11,7 @@ Structure required by the brief: Problem → Solution → Architecture → Trade
 **Content:**
 - Small Kenyan retailers — electronics shops, pharmacies, hardware stores — coordinate deliveries over WhatsApp and phone calls.
 - No record of who's assigned, no status visibility, no proof of delivery.
-- The cost of this: [fill in — e.g. "a retailer has no way to answer 'where is my customer's order' without calling the rider directly"]
+- The cost of this: a retailer has no way to answer "where is my customer's order" without calling the rider directly, and there's no record of the exchange if something goes wrong.
 
 **Visual suggestion:** A simple before/after: messy WhatsApp thread vs. a clean status view.
 
@@ -41,22 +41,22 @@ Structure required by the brief: Problem → Solution → Architecture → Trade
 ---
 
 ## Slide 4 — Architecture
-**One takeaway:** [fill in — e.g. "we kept the stack deliberately simple so every member can defend every layer"]
+**One takeaway:** We kept the stack deliberately simple so every member can defend every layer.
 
 **Content:**
-```
-Web App
-   ↓
-REST API
-   ↓
-Flask Backend
-   ↓
-SQLite Database
-```
-- Frontend: [confirm — plain HTML/CSS/JS via Jinja templates]
+
+    Web App
+       ↓
+    REST API
+       ↓
+    Flask Backend
+       ↓
+    SQLite Database
+
+- Frontend: Plain HTML/CSS/JS via Jinja templates
 - Backend: Flask
 - Database: SQLite
-- API: REST — [list the 6 endpoints, or summarize: "create, list, assign, and update-status endpoints"]
+- API: REST — six endpoints covering create, list (with status/rider filters), assign, and update-status.
 
 **Anticipate:** "Why this choice over the obvious alternative?" — see the Architecture section of the S→C→E prep doc for the rehearsed answer.
 
@@ -76,9 +76,9 @@ SQLite Database
 
 **Content:** Pull directly from the finalized `Reflex_TradeOff_Log.md` — do not re-write it differently here, use the exact same three (or more) trade-offs so your slide and your written log agree with each other under questioning.
 
-1. [Trade-off 1 — one line]
-2. [Trade-off 2 — one line]
-3. [Trade-off 3 — one line]
+1. No real authentication — open access across all three views.
+2. No GPS/live location tracking during transit.
+3. Polling every 3 seconds instead of real-time sync, with no offline retry.
 
 ---
 
@@ -86,17 +86,15 @@ SQLite Database
 **One takeaway:** We know what's next, in priority order.
 
 **Content:**
-```
-Now
-[what's actually built and working]
 
-Next
-[the 2-3 things closest to being built if given more time —
- usually mirrors your trade-offs, e.g. real auth, real-time sync]
+    Now
+    Full request → assign → pick up → deliver flow working end-to-end, live and deployed.
 
-Later
-[bigger, further-out ideas — analytics, notifications, scaling]
-```
+    Next
+    Real authentication, WebSocket/SSE-based real-time updates with offline retry, QR-based delivery confirmation.
+
+    Later
+    GPS tracking, push/SMS notifications, analytics on delivery times.
 
 ---
 
